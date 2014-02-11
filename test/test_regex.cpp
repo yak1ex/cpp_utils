@@ -23,4 +23,8 @@ BOOST_AUTO_TEST_CASE(test_with_boost_regex)
 	BOOST_CHECK(static_cast<bool>(yak::regex::capture(c1, c2) = sm));
 	BOOST_CHECK_EQUAL(c1, std::string("e"));
 	BOOST_CHECK_EQUAL(c2, std::string("s"));
+
+	std::string c3;
+	BOOST_CHECK(static_cast<bool>(yak::regex::capture(std::ignore, c3) = sm));
+	BOOST_CHECK_EQUAL(c3, std::string("s"));
 }
