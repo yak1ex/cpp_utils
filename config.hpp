@@ -1,6 +1,3 @@
-#ifndef YAK_CONFIG_HPP
-#define YAK_CONFIG_HPP
-
 #if defined(__GNUC__)
 
 #    if defined(_GLIBCXX_REGEX)
@@ -67,6 +64,4 @@
 #    undef YAK_USING_BOOST_REGEX
 #    define YAK_USE_BOOST_REGEX
 #    include "config_regex.hpp"
-#endif
-
 #endif
