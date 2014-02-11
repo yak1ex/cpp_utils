@@ -1,8 +1,8 @@
 #ifndef YAK_REGEX_HPP
 #define YAK_REGEX_HPP
 
-//#include <regex>
-#include <boost/regex.hpp>
+#define YAK_REGEX_REQUIRED
+#include "config.hpp"
 #include <string>
 #include <iostream>
 #include <tuple>
@@ -19,7 +19,7 @@ class capture_holder
 public:
 	capture_holder(T& ... t_) : t(t_...), f(false) {}
 	capture_holder(const capture_holder& c) : t(c.t), f(c.f) {}
-#if 0
+#ifdef YAK_STD_REGEX_INCLUDED
 	template<typename BidirectionalIterator,
            typename Alloc = std::allocator< std::sub_match<BidirectionalIterator> > >
   	capture_holder& operator=(const std::match_results<BidirectionalIterator, Alloc>& m)
@@ -27,7 +27,8 @@ public:
 		assign_imp(m, typename yak::util::make_indices<0, sizeof...(T)>::type());
 		return *this;
 	}
-#else
+#endif
+#ifdef YAK_BOOST_REGEX_INCLUDED
 	template<typename BidirectionalIterator,
            typename Alloc = std::allocator< boost::sub_match<BidirectionalIterator> > >
   	capture_holder& operator=(const boost::match_results<BidirectionalIterator, Alloc>& m)
@@ -39,21 +40,6 @@ public:
 	explicit operator bool() { return f; }
 private:
 	capture_holder& operator=(const capture_holder&);
-#if 0
-	template<std::size_t idx, typename BidirectionalIterator,
-           typename Alloc = std::allocator< std::sub_match<BidirectionalIterator> > >
-	bool assign_one(const std::match_results<BidirectionalIterator, Alloc>& m)
-	{
-		std::get<idx>(t) = { m[idx+1].first, m[idx+1].second };
-		return m[idx+1].first != m[idx+1].second;
-	}
-	template<typename BidirectionalIterator,
-           typename Alloc = std::allocator< std::sub_match<BidirectionalIterator> >, std::size_t ... indices>
-	void assign_imp(const std::match_results<BidirectionalIterator, Alloc>& m, yak::util::indices<indices...>)
-	{
-		f = yak::util::any(assign_one<indices>(m)...);
-	}
-#else
 	template<std::size_t idx>
 	struct ignore_check : std::is_same<
 		typename std::remove_cv<
@@ -61,28 +47,26 @@ private:
 		>::type,
 		typename std::remove_cv<decltype(std::ignore)>::type
 	> {};
-	template<std::size_t idx, typename BidirectionalIterator,
-		typename Alloc = std::allocator< boost::sub_match<BidirectionalIterator> > >
+// Called only from assign_imp, therefore the parameter type has already been limited
+	template<std::size_t idx, typename U>
 	typename std::enable_if<!ignore_check<idx>::value, bool>::type
-	assign_one(const boost::match_results<BidirectionalIterator, Alloc>& m) const
+	assign_one(const U& m) const
 	{
 		std::get<idx>(t) = { m[idx+1].first, m[idx+1].second };
 		return m[idx+1].first != m[idx+1].second;
 	}
-	template<std::size_t idx, typename BidirectionalIterator,
-		typename Alloc = std::allocator< boost::sub_match<BidirectionalIterator> > >
+	template<std::size_t idx, typename U>
 	typename std::enable_if<ignore_check<idx>::value, bool>::type
-	assign_one(const boost::match_results<BidirectionalIterator, Alloc>& m) const
+	assign_one(const U& m) const
 	{
 		return false;
 	}
-	template<typename BidirectionalIterator,
-           typename Alloc = std::allocator< boost::sub_match<BidirectionalIterator> >, std::size_t ... indices>
-	void assign_imp(const boost::match_results<BidirectionalIterator, Alloc>& m, yak::util::indices<indices...>)
+// Called only from operator=, therefore the parameter type has already been limited
+	template<typename U, std::size_t ... indices>
+	void assign_imp(const U& m, yak::util::indices<indices...>)
 	{
 		f = yak::util::any(assign_one<indices>(m)...);
 	}
-#endif
 	std::tuple<T&...> t;
 	bool f;
 };
