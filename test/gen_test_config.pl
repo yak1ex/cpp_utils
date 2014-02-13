@@ -49,7 +49,7 @@ my %suffix = (
 
 sub process_cpp
 {
-	my ($lib, $binc, $sinc) = @_;
+	my ($lib, $binc, $sinc, @types) = @_;
 	my $libu = uc($lib);
 	foreach my $force ('', 'fb', 'fs') {
 		foreach my $inc ('', 'bi', 'si', 'bsi') {
@@ -89,8 +89,9 @@ EOF
 BOOST_AUTO_TEST_CASE(config$test)
 {
 EOF
+			my $type = @types ? $lib.'<'.join(',', @types).'>' : $lib;
 			if($use eq 'boost') {
-				print $fh "\tBOOST_CHECK((boost::is_same<yak::std11::$lib, boost::$lib>::value));\n";
+				print $fh "\tBOOST_CHECK((boost::is_same<yak::std11::$type, boost::$type >::value));\n";
 				printf $fh "\tBOOST_CHECK(%syak_boost_${lib}_included);\n", ($incb ? ' ' : '!');
 				printf $fh "\tBOOST_CHECK(%syak_std_${lib}_included);\n", ($incs ? ' ' : '!');
 				print $fh <<EOF;
@@ -98,7 +99,7 @@ EOF
 	BOOST_CHECK(!yak_use_std_$lib);
 EOF
 			} elsif($use eq 'std') {
-				print $fh "\tBOOST_CHECK((boost::is_same<yak::std11::$lib, std::$lib>::value));\n";
+				print $fh "\tBOOST_CHECK((boost::is_same<yak::std11::$type, std::$type >::value));\n";
 				printf $fh "\tBOOST_CHECK(%syak_boost_${lib}_included);\n", ($incb ? ' ' : '!');
 				printf $fh "\tBOOST_CHECK(%syak_std_${lib}_included);\n", ($incs ? ' ' : '!');
 				print $fh <<EOF;
@@ -108,8 +109,8 @@ EOF
 			} elsif($inc eq 'bsi') {
 				print $fh <<EOF;
 	BOOST_CHECK(
-		(boost::is_same<yak::std11::$lib, boost::$lib>::value && yak_use_boost_$lib && !yak_use_std_$lib) ||
-		(boost::is_same<yak::std11::$lib, std::$lib>::value && yak_use_std_$lib && !yak_use_boost_$lib)
+		(boost::is_same<yak::std11::$type, boost::$type >::value && yak_use_boost_$lib && !yak_use_std_$lib) ||
+		(boost::is_same<yak::std11::$type, std::$type >::value && yak_use_std_$lib && !yak_use_boost_$lib)
 	);
 	BOOST_CHECK(yak_boost_${lib}_included);
 	BOOST_CHECK(yak_std_${lib}_included);
@@ -117,8 +118,8 @@ EOF
 			} else { # $force eq '' && $inc eq ''
 				print $fh <<EOF;
 	BOOST_CHECK(
-		(boost::is_same<yak::std11::$lib, boost::$lib>::value && yak_boost_${lib}_included && yak_use_boost_$lib && !yak_std_${lib}_included && !yak_use_std_$lib) ||
-		(boost::is_same<yak::std11::$lib, std::$lib>::value && yak_std_${lib}_included && yak_use_std_$lib && !yak_boost_${lib}_included && !yak_use_boost_$lib)
+		(boost::is_same<yak::std11::$type, boost::$type >::value && yak_boost_${lib}_included && yak_use_boost_$lib && !yak_std_${lib}_included && !yak_use_std_$lib) ||
+		(boost::is_same<yak::std11::$type, std::$type >::value && yak_std_${lib}_included && yak_use_std_$lib && !yak_boost_${lib}_included && !yak_use_boost_$lib)
 	);
 EOF
 			}
@@ -134,8 +135,8 @@ EOF
 }
 
 foreach my $spec (@ARGV) {
-	my ($lib, $binc, $sinc) = split /,/, $spec;
+	my ($lib, $binc, $sinc, @types) = split /,/, $spec;
 	$lib = lc $lib;
 	process_ipp($lib);
-	process_cpp($lib, $binc, $sinc);
+	process_cpp($lib, $binc, $sinc, @types);
 }
