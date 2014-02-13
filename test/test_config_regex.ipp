@@ -1,5 +1,6 @@
+// Automatically generated file, do not edit!
 #include "config.hpp"
-#include <type_traits>
+#include <boost/type_traits/is_same.hpp>
 
 const int yak_boost_regex_included =
 #if defined(YAK_BOOST_REGEX_INCLUDED)

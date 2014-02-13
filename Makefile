@@ -8,7 +8,10 @@ all:
 clean:
 	rm -rf test/*.o test/*.exe
 
-.PHONY: test
+gen:
+	perl test/gen_test_config.pl regex,boost/regex.hpp,regex
+
+.PHONY: test all clean gen
 
 test: test/testrunner
 	./test/testrunner --log_level=warning
