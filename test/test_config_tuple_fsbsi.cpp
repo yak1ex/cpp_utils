@@ -1,4 +1,5 @@
 // Automatically generated file, do not edit!
+#if __cplusplus >= 201103L
 #include <boost/test/auto_unit_test.hpp>
 
 #define YAK_TUPLE_REQUIRED
@@ -17,3 +18,4 @@ BOOST_AUTO_TEST_CASE(config_force_std_tuple_both_tuple_included)
 	BOOST_CHECK(!yak_using_boost_tuple);
 	BOOST_CHECK(!yak_using_std_tuple);
 }
+#endif // __cplusplus >= 201103L

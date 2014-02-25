@@ -68,6 +68,11 @@ sub process_cpp
 			open my $fh, '>', "$FindBin::Bin/test_config_$lib$suffix.cpp";
 			print $fh <<EOF;
 // Automatically generated file, do not edit!
+EOF
+			print $fh <<EOF if $inc eq 'si' || $inc eq 'bsi' || $force eq 'fs';
+#if __cplusplus >= 201103L
+EOF
+			print $fh <<EOF;
 #include <boost/test/auto_unit_test.hpp>
 
 #define YAK_${libu}_REQUIRED
@@ -82,7 +87,9 @@ EOF
 EOF
 			print $fh <<EOF if $inc eq '' && $force eq '';
 #include <$binc>
+#if __cplusplus >= 201103L
 #include <$sinc>
+#endif
 
 EOF
 			print $fh <<EOF;
@@ -117,16 +124,25 @@ EOF
 EOF
 			} else { # $force eq '' && $inc eq ''
 				print $fh <<EOF;
+#if __cplusplus >= 201103L
 	BOOST_CHECK(
 		(boost::is_same<yak::std11::$type, boost::$type >::value && yak_boost_${lib}_included && yak_use_boost_$lib && !yak_std_${lib}_included && !yak_use_std_$lib) ||
 		(boost::is_same<yak::std11::$type, std::$type >::value && yak_std_${lib}_included && yak_use_std_$lib && !yak_boost_${lib}_included && !yak_use_boost_$lib)
 	);
+#else // __cplusplus >= 201103L
+	BOOST_CHECK(
+		(boost::is_same<yak::std11::$type, boost::$type >::value && yak_boost_${lib}_included && yak_use_boost_$lib && !yak_std_${lib}_included && !yak_use_std_$lib)
+	);
+#endif // __cplusplus >= 201103L
 EOF
 			}
 			print $fh <<EOF;
 	BOOST_CHECK(!yak_using_boost_$lib);
 	BOOST_CHECK(!yak_using_std_$lib);
 }
+EOF
+			print $fh <<EOF if $inc eq 'si' || $inc eq 'bsi' || $force eq 'fs';
+#endif // __cplusplus >= 201103L
 EOF
 
 			close $fh;

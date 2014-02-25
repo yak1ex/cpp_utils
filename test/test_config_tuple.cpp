@@ -5,14 +5,22 @@
 #include "test_config_tuple.ipp"
 
 #include <boost/tuple/tuple.hpp>
+#if __cplusplus >= 201103L
 #include <tuple>
+#endif
 
 BOOST_AUTO_TEST_CASE(config_tuple)
 {
+#if __cplusplus >= 201103L
 	BOOST_CHECK(
 		(boost::is_same<yak::std11::tuple<int>, boost::tuple<int> >::value && yak_boost_tuple_included && yak_use_boost_tuple && !yak_std_tuple_included && !yak_use_std_tuple) ||
 		(boost::is_same<yak::std11::tuple<int>, std::tuple<int> >::value && yak_std_tuple_included && yak_use_std_tuple && !yak_boost_tuple_included && !yak_use_boost_tuple)
 	);
+#else // __cplusplus >= 201103L
+	BOOST_CHECK(
+		(boost::is_same<yak::std11::tuple<int>, boost::tuple<int> >::value && yak_boost_tuple_included && yak_use_boost_tuple && !yak_std_tuple_included && !yak_use_std_tuple)
+	);
+#endif // __cplusplus >= 201103L
 	BOOST_CHECK(!yak_using_boost_tuple);
 	BOOST_CHECK(!yak_using_std_tuple);
 }

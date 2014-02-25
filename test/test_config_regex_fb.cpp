@@ -7,7 +7,7 @@
 
 BOOST_AUTO_TEST_CASE(config_force_boost_regex)
 {
-	BOOST_CHECK((boost::is_same<yak::std11::regex, boost::regex>::value));
+	BOOST_CHECK((boost::is_same<yak::std11::regex, boost::regex >::value));
 	BOOST_CHECK( yak_boost_regex_included);
 	BOOST_CHECK(!yak_std_regex_included);
 	BOOST_CHECK( yak_use_boost_regex);
