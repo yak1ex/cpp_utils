@@ -72,8 +72,8 @@ sub process_cpp
 
 #define YAK_${libu}_REQUIRED
 EOF
-			print $fh "#include <$binc>\n" if $inc eq 'bi' or $inc eq 'bsi';
-			print $fh "#include <$sinc>\n" if $inc eq 'si' or $inc eq 'bsi';
+			print $fh "#include <$binc>\n" if $inc eq 'bi' || $inc eq 'bsi';
+			print $fh "#include <$sinc>\n" if $inc eq 'si' || $inc eq 'bsi';
 			print $fh "#define YAK_FORCE_BOOST_$libu\n" if $force eq 'fb';
 			print $fh "#define YAK_FORCE_STD_$libu\n" if $force eq 'fs';
 			print $fh <<EOF;
