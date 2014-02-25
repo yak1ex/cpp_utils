@@ -49,7 +49,7 @@ my %suffix = (
 
 sub process_cpp
 {
-	my ($lib, $binc, $sinc, @types) = @_;
+	my ($lib, $binc, $sinc, $mays, @types) = @_;
 	my $libu = uc($lib);
 	foreach my $force ('', 'fb', 'fs') {
 		foreach my $inc ('', 'bi', 'si', 'bsi') {
@@ -100,7 +100,11 @@ EOF
 			if($use eq 'boost') {
 				print $fh "\tBOOST_CHECK((boost::is_same<yak::std11::$type, boost::$type >::value));\n";
 				printf $fh "\tBOOST_CHECK(%syak_boost_${lib}_included);\n", ($incb ? ' ' : '!');
-				printf $fh "\tBOOST_CHECK(%syak_std_${lib}_included);\n", ($incs ? ' ' : '!');
+				if($mays) {
+					printf $fh "#if __cplusplus < 201103L\n\tBOOST_CHECK(%syak_std_${lib}_included);\n#endif\n", ($incs ? ' ' : '!');
+				} else {
+					printf $fh "\tBOOST_CHECK(%syak_std_${lib}_included);\n", ($incs ? ' ' : '!');
+				}
 				print $fh <<EOF;
 	BOOST_CHECK( yak_use_boost_$lib);
 	BOOST_CHECK(!yak_use_std_$lib);
@@ -108,7 +112,11 @@ EOF
 			} elsif($use eq 'std') {
 				print $fh "\tBOOST_CHECK((boost::is_same<yak::std11::$type, std::$type >::value));\n";
 				printf $fh "\tBOOST_CHECK(%syak_boost_${lib}_included);\n", ($incb ? ' ' : '!');
-				printf $fh "\tBOOST_CHECK(%syak_std_${lib}_included);\n", ($incs ? ' ' : '!');
+				if($mays) {
+					printf $fh "#if __cplusplus < 201103L\n\tBOOST_CHECK(%syak_std_${lib}_included);\n#endif\n", ($incs ? ' ' : '!');
+				} else {
+					printf $fh "\tBOOST_CHECK(%syak_std_${lib}_included);\n", ($incs ? ' ' : '!');
+				}
 				print $fh <<EOF;
 	BOOST_CHECK(!yak_use_boost_$lib);
 	BOOST_CHECK( yak_use_std_$lib);
@@ -126,7 +134,17 @@ EOF
 				print $fh <<EOF;
 #if __cplusplus >= 201103L
 	BOOST_CHECK(
+EOF
+				if($mays) {
+					print $fh <<EOF;
+		(boost::is_same<yak::std11::$type, boost::$type >::value && yak_boost_${lib}_included && yak_use_boost_$lib && /* !yak_std_${lib}_included && */ !yak_use_std_$lib) ||
+EOF
+				} else {
+					print $fh <<EOF;
 		(boost::is_same<yak::std11::$type, boost::$type >::value && yak_boost_${lib}_included && yak_use_boost_$lib && !yak_std_${lib}_included && !yak_use_std_$lib) ||
+EOF
+				}
+				print $fh <<EOF;
 		(boost::is_same<yak::std11::$type, std::$type >::value && yak_std_${lib}_included && yak_use_std_$lib && !yak_boost_${lib}_included && !yak_use_boost_$lib)
 	);
 #else // __cplusplus >= 201103L
@@ -151,8 +169,53 @@ EOF
 }
 
 foreach my $spec (@ARGV) {
-	my ($lib, $binc, $sinc, @types) = split /,/, $spec;
+	my ($lib, $binc, $sinc, $mays, @types) = split /,/, $spec;
 	$lib = lc $lib;
 	process_ipp($lib);
-	process_cpp($lib, $binc, $sinc, @types);
+	process_cpp($lib, $binc, $sinc, $mays, @types);
 }
+__END__
+
+=pod
+
+=head1 NAME
+
+gen_test_config.pl - Generate config tests automatically
+
+=head1 SYNOPSIS
+
+perl gen_test_config.pl C<specs>...
+
+	perl test/gen_test_config.pl regex,boost/regex.hpp,regex,0 tuple,boost/tuple/tuple.hpp,tuple,1,int
+
+=head1 DESCRIPTION
+
+C<specs> consists of comma separated values:
+
+=over 4
+
+=item *
+
+A library name
+
+=item *
+
+A header name for boost
+
+=item *
+
+A header name for std
+
+=item *
+
+A flag that Boost.Test may include std header in C++11 mode
+
+=item *
+
+Identifiers/keywords to constitute a type to be checked.
+If there is no item, just a library name is checked as a type.
+If there are items, library_nameE<lt>itemsE<gt> is checked as a type.
+
+=back
+
+=cut

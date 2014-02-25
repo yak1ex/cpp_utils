@@ -9,7 +9,7 @@ clean:
 	rm -rf test/*.o test/*.exe
 
 gen:
-	perl test/gen_test_config.pl regex,boost/regex.hpp,regex tuple,boost/tuple/tuple.hpp,tuple,int
+	perl test/gen_test_config.pl regex,boost/regex.hpp,regex,0 tuple,boost/tuple/tuple.hpp,tuple,1,int
 
 .PHONY: test all clean gen
 
